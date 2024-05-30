@@ -10,8 +10,6 @@ from blog.models import Category, Post
 
 
 class PostMixin:
-    model = Post
-    template_name = 'blog/index.html'
     paginate_by = settings.POST_PAGINATION
 
     def get_queryset(self):
@@ -24,11 +22,36 @@ class PostMixin:
 
 
 class PostListView(PostMixin, ListView):
-    pass
+    model = Post
+    template_name = 'blog/index.html'
 
 
 class Profile(PostMixin, ListView):
     pass
+    # template_name = 'blog/profile.html'
+
+
+class CategoryPostsView(PostMixin, ListView):
+    # model = Category
+    template = 'blog/category.html'
+
+    def get_queryset(self):
+        return Post.objects.prefetch_related(
+            'category', 'location', 'author'
+        ).filter(
+            category__slug=self.kwargs['category_slug'],
+            pub_date__lte=timezone.now(),
+            is_published=True, category__is_published=True
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['category'] = get_object_or_404(
+            Category,
+            slug=self.kwargs['category_slug'],
+            is_published=True,
+        )
+        return context
 
 
 def post_detail(request, post_id):
@@ -45,21 +68,5 @@ def post_detail(request, post_id):
 
     context = {
         'post': post
-    }
-    return render(request, template, context)
-
-
-def category_posts(request, category_slug):
-    template = 'blog/category.html'
-    category = get_object_or_404(
-        Category,
-        is_published=True,
-        slug=category_slug
-    )
-
-    post_list = Post.objects.all()
-    context = {
-        'category': category,
-        'post_list': post_list,
     }
     return render(request, template, context)
