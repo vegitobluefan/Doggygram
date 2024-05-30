@@ -2,16 +2,33 @@ from django.utils import timezone
 from django.http import Http404
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
+from django.views.generic import (
+    CreateView, DeleteView, DetailView, ListView, UpdateView
+)
 
 from blog.models import Category, Post
 
 
-def index(request):
-    template = 'blog/index.html'
-    context = {
-        'post_list': Post.published.all()[:settings.POSTS_SLICE]
-    }
-    return render(request, template, context)
+class PostMixin:
+    model = Post
+    template_name = 'blog/index.html'
+    paginate_by = settings.POST_PAGINATION
+
+    def get_queryset(self):
+        return Post.objects.filter(
+            pub_date__lte=timezone.now(),
+            is_published=True,
+            category__is_published=True
+        ).select_related(
+            'category', 'location', 'author')
+
+
+class PostListView(PostMixin, ListView):
+    pass
+
+
+class Profile(PostMixin, ListView):
+    pass
 
 
 def post_detail(request, post_id):
@@ -40,7 +57,7 @@ def category_posts(request, category_slug):
         slug=category_slug
     )
 
-    post_list = category.posts(manager='published').all()
+    post_list = Post.objects.all()
     context = {
         'category': category,
         'post_list': post_list,

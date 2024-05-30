@@ -80,8 +80,8 @@ class Location(BaseModel):
 
 
 class Post(BaseModel):
-    objects = PostQueryset.as_manager()
-    published = PublishedPostManager()
+    #objects = PostQueryset.as_manager()
+    #published = PublishedPostManager()
 
     title = models.CharField(
         max_length=settings.MAX_LENGTH,

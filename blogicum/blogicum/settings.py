@@ -87,6 +87,20 @@ MAX_LENGTH = 256
 
 POSTS_SLICE = 5
 
+POST_PAGINATION = 10
+
+CSRF_FAILURE_VIEW = 'pages.views.csrf_failure'
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+
+MEDIA_ROOT = BASE_DIR / 'media'
+
+LOGIN_REDIRECT_URL = 'blog:index'
+
+LOGIN_URL = 'login'
+
 LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'UTC'
