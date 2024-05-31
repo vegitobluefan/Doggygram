@@ -1,23 +1,23 @@
 from django.shortcuts import render
+from django.http import HttpRequest
+from django.views.generic import TemplateView
 
 
-def about(request):
+class About(TemplateView):
     template = 'pages/about.html'
-    return render(request, template)
 
 
-def rules(request):
+class Rules(TemplateView):
     template = 'pages/rules.html'
-    return render(request, template)
 
 
-def csrf_failure(request, reason=''):
+def csrf_failure(request: HttpRequest, reason=''):
     return render(request, 'pages/403csrf.html', status=403)
 
 
-def page_not_found(request, exception):
+def page_not_found(request: HttpRequest, exception):
     return render(request, 'pages/404.html', status=404)
 
 
-def server_error_500(request):
+def server_error_500(request: HttpRequest):
     return render(request, 'pages/500.html', status=500)

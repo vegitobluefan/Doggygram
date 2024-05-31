@@ -26,20 +26,6 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class PostQueryset(models.QuerySet):
-    def published(self):
-        return self.filter(
-            pub_date__lte=timezone.now(),
-            is_published=True,
-            category__is_published=True,
-        ).select_related('author', 'category', 'location')
-
-
-class PublishedPostManager(models.Manager):
-    def get_queryset(self):
-        return PostQueryset(self.model, using=self._db).published()
-
-
 class Category(BaseModel):
     title = models.CharField(
         max_length=settings.MAX_LENGTH,
@@ -80,9 +66,6 @@ class Location(BaseModel):
 
 
 class Post(BaseModel):
-    #objects = PostQueryset.as_manager()
-    #published = PublishedPostManager()
-
     title = models.CharField(
         max_length=settings.MAX_LENGTH,
         verbose_name='Заголовок'
@@ -116,6 +99,11 @@ class Post(BaseModel):
         verbose_name='Категория',
         related_name='posts'
     )
+    image = models.ImageField(
+        'Изображение',
+        upload_to='posts_images',
+        blank=True
+    )
 
     class Meta:
         verbose_name = 'публикация'
@@ -124,3 +112,31 @@ class Post(BaseModel):
 
     def __str__(self) -> str:
         return self.title
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        verbose_name='Комментарий'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Автор комментария'
+    )
+    text = models.TextField(
+        verbose_name='Текст комментария'
+    )
+    creation_date = models.DateTimeField(
+        verbose_name='Дата публикации комментария',
+        auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'Комментарии'
+        ordering = ('-creation_date',)
+
+    def __str__(self) -> str:
+        return self.text

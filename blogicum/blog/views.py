@@ -1,5 +1,6 @@
 from django.utils import timezone
 from django.http import Http404
+from django.db.models import Count
 from django.conf import settings
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import (
@@ -10,6 +11,7 @@ from blog.models import Category, Post
 
 
 class PostMixin:
+    model = Post
     paginate_by = settings.POST_PAGINATION
 
     def get_queryset(self):
@@ -22,18 +24,16 @@ class PostMixin:
 
 
 class PostListView(PostMixin, ListView):
-    model = Post
     template_name = 'blog/index.html'
 
 
 class Profile(PostMixin, ListView):
-    pass
-    # template_name = 'blog/profile.html'
+    template_name = 'blog/profile.html'
 
 
-class CategoryPostsView(PostMixin, ListView):
-    # model = Category
-    template = 'blog/category.html'
+class CategoryPostsView(ListView):
+    model = Post
+    template_name = 'blog/category.html'
 
     def get_queryset(self):
         return Post.objects.prefetch_related(
@@ -41,16 +41,20 @@ class CategoryPostsView(PostMixin, ListView):
         ).filter(
             category__slug=self.kwargs['category_slug'],
             pub_date__lte=timezone.now(),
-            is_published=True, category__is_published=True
-        )
+            is_published=True,
+            category__is_published=True
+        ).annotate(
+            comment_count=Count('comment')
+        ).order_by('-pub_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['category'] = get_object_or_404(
-            Category,
-            slug=self.kwargs['category_slug'],
-            is_published=True,
+            Category, 
+            slug=self.kwargs['category_slug'], 
+            is_published=True
         )
+
         return context
 
 
