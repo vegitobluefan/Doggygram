@@ -1,15 +1,15 @@
-from django.contrib import admin
-from django.conf import settings
-from django.contrib.auth.forms import UserCreationForm
-from django.views.generic.edit import CreateView
-from django.urls import include, path, reverse_lazy
+from django.contrib import admin  # type: ignore
+from django.conf import settings  # type: ignore
+from django.contrib.auth.forms import UserCreationForm  # type: ignore
+from django.views.generic.edit import CreateView  # type: ignore
+from django.conf.urls.static import static  # type: ignore
+from django.urls import include, path, reverse_lazy  # type: ignore
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('blog.urls', namespace='blog')),
     path('posts/', include('blog.urls', namespace='blog')),
     path('category/', include('blog.urls', namespace='blog')),
-    # path('profile/', include('blog.urls', namespace='blog')),
     path('pages/', include('pages.urls', namespace='pages')),
     path('auth/', include('django.contrib.auth.urls')),
     path(
@@ -21,7 +21,7 @@ urlpatterns = [
         ),
         name='registration',
     ),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     import debug_toolbar
