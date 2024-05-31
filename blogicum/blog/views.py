@@ -14,6 +14,8 @@ from blog.forms import CreateCommentForm, CreatePostForm
 
 
 class PostListView(ListView):
+    """Post list view."""
+
     template_name = 'blog/index.html'
     model = Post
     paginate_by = settings.POST_PAGINATION
@@ -30,6 +32,8 @@ class PostListView(ListView):
 
 
 class PostDetailView(DetailView):
+    """Certain post view."""
+
     model = Post
     template_name = 'blog/detail.html'
     slug_field = 'id'
@@ -56,6 +60,8 @@ class PostDetailView(DetailView):
 
 
 class CategoryPostsView(ListView):
+    """View for posts in certain category."""
+
     model = Post
     template_name = 'blog/category.html'
     paginate_by = settings.POST_PAGINATION
@@ -83,6 +89,8 @@ class CategoryPostsView(ListView):
 
 
 class CommentCreateView(LoginRequiredMixin, CreateView):
+    """Comment creation view."""
+
     model = Comment
     form_class = CreateCommentForm
     template_name = 'blog/comment.html'
@@ -98,21 +106,27 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse(
-            'blog:post_detail', 
+            'blog:post_detail',
             kwargs={'post_id': self.kwargs['post_id']}
         )
 
 
 class CommentEditView(LoginRequiredMixin, UpdateView):
+    """Comment editing view."""
+
     pass
 
 
 class Profile(ListView):
+    """User's profile view."""
+
     template_name = 'blog/profile.html'
     paginate_by = settings.POST_PAGINATION
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
+    """View for post creation."""
+
     model = Post
     form_class = CreatePostForm
     template_name = 'blog/create.html'
@@ -123,6 +137,18 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse(
-            'blog:profile', 
+            'blog:profile',
             kwargs={'username': self.request.user.username}
         )
+
+
+class PostEditView(LoginRequiredMixin, UpdateView):
+    """Post editing view."""
+
+    pass
+
+
+class PostDeleteView(LoginRequiredMixin, DeleteView):
+    """Post deletion view."""
+
+    pass

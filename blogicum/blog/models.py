@@ -1,15 +1,14 @@
-from django.utils import timezone
-from django.db import models
-from django.contrib.auth import get_user_model
-from django.conf import settings
+from django.db import models  # type: ignore
+from django.contrib.auth import get_user_model  # type: ignore
+from django.conf import settings  # type: ignore
 
 User = get_user_model()
 
 
 class BaseModel(models.Model):
     """
-    Абстрактная модель.
-    Добавляет к модели флаг публикации и дату создания.
+    Abstract model.
+    Adds publication and creation flags to the model.
     """
 
     is_published = models.BooleanField(
@@ -27,6 +26,8 @@ class BaseModel(models.Model):
 
 
 class Category(BaseModel):
+    """Post's Category model."""
+
     title = models.CharField(
         max_length=settings.MAX_LENGTH,
         verbose_name='Заголовок'
@@ -52,6 +53,8 @@ class Category(BaseModel):
 
 
 class Location(BaseModel):
+    """Post's Location model."""
+
     name = models.CharField(
         max_length=settings.MAX_LENGTH,
         verbose_name='Название места'
@@ -66,6 +69,8 @@ class Location(BaseModel):
 
 
 class Post(BaseModel):
+    """Post model."""
+
     title = models.CharField(
         max_length=settings.MAX_LENGTH,
         verbose_name='Заголовок'
@@ -115,6 +120,8 @@ class Post(BaseModel):
 
 
 class Comment(models.Model):
+    """Post's Comment model"""
+
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,

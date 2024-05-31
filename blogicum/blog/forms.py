@@ -1,10 +1,11 @@
-from django import forms
-from django.urls import reverse_lazy
+from django import forms  # type: ignore
+from django.urls import reverse_lazy  # type: ignore
 
 from .models import Comment, Post
 
 
 class CreateCommentForm(forms.ModelForm):
+    """Comment creation form."""
 
     class Meta:
         model = Comment
@@ -12,6 +13,7 @@ class CreateCommentForm(forms.ModelForm):
 
 
 class CreatePostForm(forms.ModelForm):
+    """Post creation form."""
 
     class Meta:
         model = Post
