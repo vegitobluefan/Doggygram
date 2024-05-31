@@ -12,4 +12,14 @@ urlpatterns = [
         name='category_posts'
     ),
     path('profile/<str:username>/', views.Profile.as_view(), name='profile'),
+    path(
+        'posts/<int:post_id>/comment/',
+        views.CommentCreateView.as_view(),
+        name='comment'
+    ),
+    path(
+        'posts/<int:post_id>/edit_comment/<int:comment_id>/',
+        views.CommentEditView.as_view(),
+        name='comment_edit'
+    )
 ]
