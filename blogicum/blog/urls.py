@@ -36,7 +36,7 @@ urlpatterns = [
         name='edit_comment'
     ),
     path(
-        'posts/<post_id>/delete_comment/<comment_id>/',
+        'posts/<int:post_id>/delete_comment/<int:comment_id>/',
         views.CommentDeleteView.as_view(),
         name='delete_comment'
     ),
@@ -46,12 +46,12 @@ urlpatterns = [
         name='create_post'
     ),
     path(
-        'posts/<post_id>/edit/',
+        'posts/<int:post_id>/edit/',
         views.PostEditView.as_view(),
         name='edit_post'
     ),
     path(
-        'posts/<post_id>/delete/',
+        'posts/<int:post_id>/delete/',
         views.PostDeleteView.as_view(),
         name='delete_post'
     ),

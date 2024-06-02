@@ -24,4 +24,3 @@ class PostForm(forms.ModelForm):
                 format=('%Y-%m-%dT%H:%M'), attrs={'type': 'datetime-local'}
             )
         }
-        success_url = reverse_lazy('blog:profile')
