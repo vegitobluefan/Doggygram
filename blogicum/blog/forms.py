@@ -4,7 +4,7 @@ from django.urls import reverse_lazy  # type: ignore
 from .models import Comment, Post
 
 
-class CreateCommentForm(forms.ModelForm):
+class CommentForm(forms.ModelForm):
     """Comment creation form."""
 
     class Meta:
@@ -12,7 +12,7 @@ class CreateCommentForm(forms.ModelForm):
         fields = ('text',)
 
 
-class CreatePostForm(forms.ModelForm):
+class PostForm(forms.ModelForm):
     """Post creation form."""
 
     class Meta:

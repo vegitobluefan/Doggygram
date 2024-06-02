@@ -9,8 +9,32 @@ from django.views.generic import (  # type: ignore
     CreateView, DeleteView, DetailView, ListView, UpdateView
 )
 
-from blog.models import Category, Comment, Post
-from blog.forms import CreateCommentForm, CreatePostForm
+from blog.models import Category, Comment, Post, User
+from blog.forms import CommentForm, PostForm
+
+
+class Profile(ListView):
+    """User's profile view."""
+
+    template_name = 'blog/profile.html'
+    paginate_by = settings.POST_PAGINATION
+
+    def get_queryset(self):
+        return Post.objects.prefetch_related(
+            'category', 'location', 'author'
+        ).filter(
+            author__username=self.kwargs['username']
+        ).annotate(
+            comment_count=Count('comment')
+        ).order_by('-pub_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['username'] = get_object_or_404(
+            User, username=self.kwargs['username']
+        )
+
+        return context
 
 
 class PostListView(ListView):
@@ -40,7 +64,10 @@ class PostDetailView(DetailView):
     slug_url_kwarg = 'post_id'
 
     def dispatch(self, request, *args, **kwargs):
-        instance = get_object_or_404(Post, pk=kwargs['post_id'])
+        instance = get_object_or_404(
+            Post,
+            pk=kwargs['post_id']
+        )
         if (
             not instance.category.is_published or
                 instance.pub_date > timezone.now() or not
@@ -52,7 +79,7 @@ class PostDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = CreateCommentForm
+        context['form'] = CommentForm
         context['comment'] = (
             self.object.comment.select_related('author')
         )
@@ -92,7 +119,7 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
     """Comment creation view."""
 
     model = Comment
-    form_class = CreateCommentForm
+    form_class = CommentForm
     template_name = 'blog/comment.html'
 
     def dispatch(self, request, *args, **kwargs):
@@ -117,18 +144,15 @@ class CommentEditView(LoginRequiredMixin, UpdateView):
     pass
 
 
-class Profile(ListView):
-    """User's profile view."""
-
-    template_name = 'blog/profile.html'
-    paginate_by = settings.POST_PAGINATION
+class CommentDeleteView(DeleteView):
+    pass
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     """View for post creation."""
 
     model = Post
-    form_class = CreatePostForm
+    form_class = PostForm
     template_name = 'blog/create.html'
 
     def form_valid(self, form):
