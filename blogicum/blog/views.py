@@ -1,16 +1,20 @@
 from django.utils import timezone  # type: ignore
-from django.urls import reverse  # type: ignore
+from django.urls import reverse, reverse_lazy  # type: ignore
 from django.http import Http404  # type: ignore
 from django.db.models import Count  # type: ignore
 from django.contrib.auth.mixins import LoginRequiredMixin  # type: ignore
+from django.contrib.auth import get_user_model  # type: ignore
 from django.conf import settings  # type: ignore
 from django.shortcuts import get_object_or_404, redirect  # type: ignore
 from django.views.generic import (  # type: ignore
     CreateView, DeleteView, DetailView, ListView, UpdateView
 )
 
-from blog.models import Category, Comment, Post, User
-from blog.forms import CommentForm, PostForm
+from blog.models import Category, Comment, Post
+from blog.forms import CommentForm, PostForm, UserForm
+
+
+User = get_user_model()
 
 
 class Profile(ListView):
@@ -30,11 +34,28 @@ class Profile(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['username'] = get_object_or_404(
+        context['profile'] = get_object_or_404(
             User, username=self.kwargs['username']
         )
 
         return context
+
+
+class ProfieEditView(LoginRequiredMixin, UpdateView):
+    """User's profile editing view."""
+
+    model = User
+    form_class = UserForm
+    template_name = 'blog/user.html'
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_success_url(self):
+        return reverse_lazy(
+            'blog:profile',
+            kwargs={'username': self.request.user.username}
+        )
 
 
 class PostListView(ListView):
@@ -64,24 +85,18 @@ class PostDetailView(DetailView):
     slug_url_kwarg = 'post_id'
 
     def dispatch(self, request, *args, **kwargs):
-        instance = get_object_or_404(
-            Post,
-            id=kwargs['post_id']
-        )
-        if (
-            not instance.category.is_published or
-                instance.pub_date > timezone.now() or not
-                instance.is_published and
-                instance.author != request.user
-        ):
-            raise Http404('Пост не найден.')
+        post = get_object_or_404(Post, pk=kwargs['post_id'])
+        if not post.is_published and post.author != request.user:
+            raise Http404
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = CommentForm
+        context['form'] = CommentForm()
         context['comments'] = (
-            self.object.comments.select_related('author')
+            self.object.comments.select_related('author', 'post').filter(
+                post__id=self.kwargs['post_id']
+            )       
         )
         return context
 
@@ -126,19 +141,14 @@ class CommentEditDeleteMixin(CommentBaseMixin):
     slug_url_kwarg = 'comment_id'
 
     def dispatch(self, request, *args, **kwargs):
-        post = get_object_or_404(
-            Comment,
-            pk=self.kwargs['comment_id']
-        )
-        if self.request.user != post.author:
-            return redirect('blog:post_detail', pk=self.kwargs['comment_id'])
-
+        instance = get_object_or_404(Comment, pk=kwargs['comment_id'])
+        if instance.author != request.user:
+            raise Http404('Ошибка доступа')
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse(
-            'blog:post_detail',
-            kwargs={'post_id': self.kwargs['post_id']}
+            'blog:post_detail', kwargs={'post_id': self.kwargs['post_id']}
         )
 
 

@@ -1,7 +1,6 @@
 from django import forms  # type: ignore
-from django.urls import reverse_lazy  # type: ignore
 
-from .models import Comment, Post
+from .models import Comment, Post, User
 
 
 class CommentForm(forms.ModelForm):
@@ -24,3 +23,11 @@ class PostForm(forms.ModelForm):
                 format=('%Y-%m-%dT%H:%M'), attrs={'type': 'datetime-local'}
             )
         }
+
+
+class UserForm(forms.ModelForm):
+    """User editing form."""
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email',)
