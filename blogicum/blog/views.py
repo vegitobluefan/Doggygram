@@ -88,16 +88,6 @@ class PostDetailView(DetailView):
     slug_field = 'id'
     slug_url_kwarg = 'post_id'
 
-    def dispatch(self, request, *args, **kwargs):
-        post = get_object_or_404(
-            Post,
-            pk=self.kwargs['post_id']
-        )
-        if not post.is_published and post.author != request.user:
-            raise Http404('Пост не найден.')
-
-        return super().dispatch(request, *args, **kwargs)
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = CommentForm()
