@@ -91,17 +91,11 @@ class PostDetailView(DetailView):
     def dispatch(self, request, *args, **kwargs):
         post = get_object_or_404(
             Post,
-            is_published=True,
-            category__is_published=True,
-            pub_date__lte=timezone.now(),
             pk=self.kwargs['post_id']
         )
-        if (
-            not post.category.is_published
-            or post.pub_date > timezone.now()
-            or not post.is_published and post.author != request.user
-        ):
+        if not post.is_published and post.author != request.user:
             raise Http404('Пост не найден.')
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
