@@ -75,7 +75,8 @@ class PostListView(ListView):
             is_published=True,
             category__is_published=True
         ).select_related(
-            'category', 'location', 'author').annotate(
+            'category', 'location', 'author'
+        ).annotate(
             comment_count=Count('comments')
         ).order_by('-pub_date')
 
@@ -87,6 +88,20 @@ class PostDetailView(DetailView):
     template_name = 'blog/detail.html'
     slug_field = 'id'
     slug_url_kwarg = 'post_id'
+
+    def dispatch(self, request, *args, **kwargs):
+        post = get_object_or_404(
+            Post,
+            pk=kwargs['post_id']
+        )
+        if (
+            not post.category.is_published
+            or post.pub_date > timezone.now()
+            or not post.is_published
+        ) and post.author != request.user:
+            raise Http404('Пост не найден.')
+
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -140,7 +155,10 @@ class CommentEditDeleteMixin(CommentBaseMixin):
     slug_url_kwarg = 'comment_id'
 
     def dispatch(self, request, *args, **kwargs):
-        instance = get_object_or_404(Comment, pk=kwargs['comment_id'])
+        instance = get_object_or_404(
+            Comment,
+            pk=kwargs['comment_id']
+        )
         if instance.author != request.user:
             raise Http404('Ошибка доступа')
         return super().dispatch(request, *args, **kwargs)
@@ -203,10 +221,10 @@ class PostEditDeleteMixin(PostBaseMixin):
     def dispatch(self, request, *args, **kwargs):
         post = get_object_or_404(
             Post,
-            pk=self.kwargs['post_id']
+            id=self.kwargs['post_id']
         )
         if self.request.user != post.author:
-            return redirect('blog:post_detail', pk=self.kwargs['post_id'])
+            return redirect('blog:post_detail', post_id=self.kwargs['post_id'])
 
         return super().dispatch(request, *args, **kwargs)
 

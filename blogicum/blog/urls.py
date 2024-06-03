@@ -11,11 +11,6 @@ urlpatterns = [
         name='index'
     ),
     path(
-        'posts/<int:post_id>/',
-        views.PostDetailView.as_view(),
-        name='post_detail'
-    ),
-    path(
         '<slug:category_slug>/',
         views.CategoryPostsView.as_view(),
         name='category_posts'
@@ -59,5 +54,10 @@ urlpatterns = [
         'posts/<int:post_id>/delete/',
         views.PostDeleteView.as_view(),
         name='delete_post'
+    ),
+    path(
+        'posts/<int:post_id>/',
+        views.PostDetailView.as_view(),
+        name='post_detail'
     ),
 ]
