@@ -101,14 +101,16 @@ class PostDetailView(DetailView):
             or post.pub_date > timezone.now()
             or not post.is_published and post.author != request.user
         ):
-            raise Http404('Пост под не найден.')
+            raise Http404('Пост не найден.')
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = CommentForm()
         context['comments'] = (
-            self.object.comments.select_related('author', 'post').filter(
+            self.object.comments.select_related(
+                'author', 'post'
+            ).filter(
                 post__id=self.kwargs['post_id']
             )
         )
@@ -171,7 +173,10 @@ class CommentCreateView(CommentBaseMixin, CreateView):
     form_class = CommentForm
 
     def dispatch(self, request, *args, **kwargs):
-        self.object = get_object_or_404(Post, pk=kwargs['post_id'])
+        self.object = get_object_or_404(
+            Post,
+            pk=kwargs['post_id']
+        )
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -214,7 +219,7 @@ class PostEditDeleteMixin(PostBaseMixin):
     def dispatch(self, request, *args, **kwargs):
         post = get_object_or_404(
             Post,
-            id=self.kwargs['post_id']
+            pk=self.kwargs['post_id']
         )
         if self.request.user != post.author:
             return redirect('blog:post_detail', pk=self.kwargs['post_id'])
