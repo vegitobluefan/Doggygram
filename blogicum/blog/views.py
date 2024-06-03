@@ -1,13 +1,17 @@
-from django.utils import timezone  # type: ignore
-from django.urls import reverse, reverse_lazy  # type: ignore
-from django.http import Http404  # type: ignore
-from django.db.models import Count  # type: ignore
-from django.contrib.auth.mixins import LoginRequiredMixin  # type: ignore
-from django.contrib.auth import get_user_model  # type: ignore
-from django.conf import settings  # type: ignore
-from django.shortcuts import get_object_or_404, redirect  # type: ignore
-from django.views.generic import (  # type: ignore
-    CreateView, DeleteView, DetailView, ListView, UpdateView
+from django.utils import timezone
+from django.urls import reverse, reverse_lazy
+from django.http import Http404
+from django.db.models import Count
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import get_user_model
+from django.conf import settings
+from django.shortcuts import get_object_or_404, redirect
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView
 )
 
 from blog.models import Category, Comment, Post
@@ -85,9 +89,19 @@ class PostDetailView(DetailView):
     slug_url_kwarg = 'post_id'
 
     def dispatch(self, request, *args, **kwargs):
-        post = get_object_or_404(Post, pk=kwargs['post_id'])
-        if not post.is_published and post.author != request.user:
-            raise Http404
+        post = get_object_or_404(
+            Post,
+            is_published=True,
+            category__is_published=True,
+            pub_date__lte=timezone.now(),
+            pk=self.kwargs['post_id']
+        )
+        if (
+            not post.category.is_published
+            or post.pub_date > timezone.now()
+            or not post.is_published and post.author != request.user
+        ):
+            raise Http404('Пост под не найден.')
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -96,7 +110,7 @@ class PostDetailView(DetailView):
         context['comments'] = (
             self.object.comments.select_related('author', 'post').filter(
                 post__id=self.kwargs['post_id']
-            )       
+            )
         )
         return context
 
@@ -132,7 +146,6 @@ class CategoryPostsView(ListView):
 
 class CommentBaseMixin(LoginRequiredMixin):
     model = Comment
-    form_class = CommentForm
     template_name = 'blog/comment.html'
 
 
@@ -155,6 +168,8 @@ class CommentEditDeleteMixin(CommentBaseMixin):
 class CommentCreateView(CommentBaseMixin, CreateView):
     """View for comment creation"""
 
+    form_class = CommentForm
+
     def dispatch(self, request, *args, **kwargs):
         self.object = get_object_or_404(Post, pk=kwargs['post_id'])
         return super().dispatch(request, *args, **kwargs)
@@ -174,7 +189,7 @@ class CommentCreateView(CommentBaseMixin, CreateView):
 class CommentEditView(CommentEditDeleteMixin, UpdateView):
     """Comment editing view."""
 
-    pass
+    form_class = CommentForm
 
 
 class CommentDeleteView(CommentEditDeleteMixin, DeleteView):

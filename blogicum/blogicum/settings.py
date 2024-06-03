@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -85,8 +84,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 MAX_LENGTH = 256
 
-POSTS_SLICE = 5
-
 POST_PAGINATION = 10
 
 CSRF_FAILURE_VIEW = 'pages.views.csrf_failure'
@@ -112,6 +109,7 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

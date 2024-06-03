@@ -1,6 +1,6 @@
-from django.db import models  # type: ignore
-from django.contrib.auth import get_user_model  # type: ignore
-from django.conf import settings  # type: ignore
+from django.db import models
+from django.contrib.auth import get_user_model
+from django.conf import settings
 
 User = get_user_model()
 
@@ -137,8 +137,8 @@ class Comment(models.Model):
         verbose_name='Текст комментария'
     )
     creation_date = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата публикации комментария'
+        verbose_name='Добавлено',
+        auto_now_add=True
     )
 
     class Meta:

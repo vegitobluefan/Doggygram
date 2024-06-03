@@ -1,4 +1,4 @@
-from django.urls import path  # type: ignore
+from django.urls import path
 
 from blog import views
 
@@ -11,7 +11,7 @@ urlpatterns = [
         name='index'
     ),
     path(
-        '<int:post_id>/',
+        'posts/<int:post_id>/',
         views.PostDetailView.as_view(),
         name='post_detail'
     ),
