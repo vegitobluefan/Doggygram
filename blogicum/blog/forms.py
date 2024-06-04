@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.forms import UserChangeForm
 
 from .models import Comment, Post, User
 
@@ -25,7 +26,7 @@ class PostForm(forms.ModelForm):
         }
 
 
-class UserForm(forms.ModelForm):
+class UserForm(UserChangeForm):
     """User editing form."""
 
     class Meta:
