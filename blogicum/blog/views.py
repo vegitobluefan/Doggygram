@@ -219,7 +219,8 @@ class PostEditDeleteMixin(PostBaseMixin):
     slug_url_kwarg = 'post_id'
 
     def dispatch(self, request, *args, **kwargs):
-        post = Post.objects.get(
+        post = get_object_or_404(
+            Post,
             id=self.kwargs['post_id']
         )
         if self.request.user != post.author:
