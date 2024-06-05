@@ -27,20 +27,20 @@ class Profile(ListView):
     template_name = 'blog/profile.html'
     paginate_by = settings.POST_PAGINATION
 
+    def get_user_profile(self):
+        return get_object_or_404(
+            User,
+            username=self.kwargs['username']
+        )
+
     def get_queryset(self):
-        return Post.objects.prefetch_related(
-            'category', 'location', 'author'
-        ).filter(
-            author__username=self.kwargs['username']
-        ).annotate(
-            comment_count=Count('comments')
-        ).order_by('-pub_date')
+        return Post.posts_manager.filter(
+            author=self.get_user_profile()
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['profile'] = get_object_or_404(
-            User, username=self.kwargs['username']
-        )
+        context['profile'] = self.get_user_profile()
 
         return context
 
@@ -70,15 +70,11 @@ class PostListView(ListView):
     paginate_by = settings.POST_PAGINATION
 
     def get_queryset(self):
-        return Post.objects.filter(
+        return Post.posts_manager.filter(
             pub_date__lte=timezone.now(),
             is_published=True,
             category__is_published=True
-        ).select_related(
-            'category', 'location', 'author'
-        ).annotate(
-            comment_count=Count('comments')
-        ).order_by('-pub_date')
+        )
 
 
 class PostDetailView(DetailView):
@@ -124,16 +120,12 @@ class CategoryPostsView(ListView):
     paginate_by = settings.POST_PAGINATION
 
     def get_queryset(self):
-        return Post.objects.prefetch_related(
-            'category', 'location', 'author'
-        ).filter(
+        return Post.posts_manager.filter(
             category__slug=self.kwargs['category_slug'],
             pub_date__lte=timezone.now(),
             is_published=True,
             category__is_published=True
-        ).annotate(
-            comment_count=Count('comments')
-        ).order_by('-pub_date')
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -160,7 +152,7 @@ class CommentEditDeleteMixin(CommentBaseMixin):
             pk=kwargs['comment_id']
         )
         if instance.author != request.user:
-            raise Http404('Ошибка доступа')
+            raise Http404('Пост не найден.')
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
@@ -187,7 +179,7 @@ class CommentCreateView(CommentBaseMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse(
+        return reverse( 
             'blog:post_detail',
             kwargs={'post_id': self.kwargs['post_id']}
         )
@@ -219,12 +211,14 @@ class PostEditDeleteMixin(PostBaseMixin):
     slug_url_kwarg = 'post_id'
 
     def dispatch(self, request, *args, **kwargs):
-        post = get_object_or_404(
-            Post,
+        post = Post.objects.get(
             id=self.kwargs['post_id']
         )
         if self.request.user != post.author:
             return redirect('blog:post_detail', post_id=self.kwargs['post_id'])
+
+        if not post.is_published:
+            raise Http404
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -262,7 +256,7 @@ class PostDeleteView(PostEditDeleteMixin, DeleteView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = {'instance': self.object}
+        context['form'] = PostForm(instance=self.object)
         return context
 
     def get_success_url(self):

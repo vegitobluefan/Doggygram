@@ -1,8 +1,25 @@
 from django.db import models
+from django.utils import timezone
+from django.db.models import Count
 from django.contrib.auth import get_user_model
 from django.conf import settings
 
+
 User = get_user_model()
+
+
+class PostQuerySet(models.QuerySet):
+    def get_queryset(self):
+        return self.select_related(
+            'category', 'location', 'author'
+        ).annotate(
+            comment_count=Count('comments')
+        ).order_by('-pub_date')
+
+
+class PostManager(models.Manager):
+    def get_queryset(self):
+        return PostQuerySet(self.model, using=self._db).get_queryset()
 
 
 class BaseModel(models.Model):
@@ -71,6 +88,9 @@ class Location(BaseModel):
 class Post(BaseModel):
     """Post model."""
 
+    objects = PostQuerySet.as_manager()
+    posts_manager = PostManager()
+
     title = models.CharField(
         max_length=settings.MAX_LENGTH,
         verbose_name='Заголовок'
@@ -89,6 +109,7 @@ class Post(BaseModel):
         User,
         on_delete=models.CASCADE,
         verbose_name='Автор публикации',
+        related_name='author_profile'
     )
     location = models.ForeignKey(
         Location,
