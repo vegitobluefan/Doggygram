@@ -62,6 +62,28 @@ class ProfieEditView(LoginRequiredMixin, UpdateView):
         )
 
 
+class PostBaseMixin:
+    """Base mixin for posts"""
+
+    model = Post
+    slug_field = 'id'
+    slug_url_kwarg = 'post_id'
+
+    def dispatch(self, request, *args, **kwargs):
+        post = get_object_or_404(
+            Post,
+            pk=self.kwargs['post_id']
+        )
+        if (
+            not post.category.is_published
+            or post.pub_date > timezone.now()
+            or not post.is_published
+        ) and post.author != request.user:
+            raise Http404('Пост не найден.')
+
+        return super().dispatch(request, *args, **kwargs)
+
+
 class PostListView(ListView):
     """Post list view."""
 
@@ -77,27 +99,10 @@ class PostListView(ListView):
         )
 
 
-class PostDetailView(DetailView):
+class PostDetailView(PostBaseMixin, DetailView):
     """Certain post view."""
 
-    model = Post
     template_name = 'blog/detail.html'
-    slug_field = 'id'
-    slug_url_kwarg = 'post_id'
-
-    def dispatch(self, request, *args, **kwargs):
-        post = get_object_or_404(
-            Post,
-            pk=kwargs['post_id']
-        )
-        if (
-            not post.category.is_published
-            or post.pub_date > timezone.now()
-            or not post.is_published
-        ) and post.author != request.user:
-            raise Http404('Пост не найден.')
-
-        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -179,7 +184,7 @@ class CommentCreateView(CommentBaseMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse( 
+        return reverse(
             'blog:post_detail',
             kwargs={'post_id': self.kwargs['post_id']}
         )
@@ -197,36 +202,11 @@ class CommentDeleteView(CommentEditDeleteMixin, DeleteView):
     pass
 
 
-class PostBaseMixin(LoginRequiredMixin):
-    """Base mixin for posts"""
-
-    model = Post
-    template_name = 'blog/create.html'
-
-
-class PostEditDeleteMixin(PostBaseMixin):
-    """Mixin for post creation and deletion views."""
-
-    slug_field = 'id'
-    slug_url_kwarg = 'post_id'
-
-    def dispatch(self, request, *args, **kwargs):
-        post = Post.objects.get(
-            id=self.kwargs['post_id']
-        )
-        if self.request.user != post.author:
-            return redirect('blog:post_detail', post_id=self.kwargs['post_id'])
-
-        if not post.is_published:
-            raise Http404
-
-        return super().dispatch(request, *args, **kwargs)
-
-
-class PostCreateView(PostBaseMixin, CreateView):
+class PostCreateView(LoginRequiredMixin, CreateView):
     """Creation view"""
 
     form_class = PostForm
+    template_name = 'blog/create.html'
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -239,10 +219,11 @@ class PostCreateView(PostBaseMixin, CreateView):
         )
 
 
-class PostEditView(PostEditDeleteMixin, UpdateView):
+class PostEditView(PostBaseMixin, LoginRequiredMixin, UpdateView):
     """Post editing view."""
 
     form_class = PostForm
+    template_name = 'blog/create.html'
 
     def get_success_url(self):
         return reverse(
@@ -251,8 +232,10 @@ class PostEditView(PostEditDeleteMixin, UpdateView):
         )
 
 
-class PostDeleteView(PostEditDeleteMixin, DeleteView):
+class PostDeleteView(PostBaseMixin, LoginRequiredMixin, DeleteView):
     """Post deletion view."""
+
+    template_name = 'blog/create.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
