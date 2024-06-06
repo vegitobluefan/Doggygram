@@ -1,8 +1,7 @@
 from django.utils import timezone
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.http import Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import (
@@ -13,11 +12,8 @@ from django.views.generic import (
     UpdateView
 )
 
-from blog.models import Category, Comment, Post
+from blog.models import Category, Comment, Post, User
 from blog.forms import CommentForm, PostForm, UserForm
-
-
-User = get_user_model()
 
 
 class Profile(ListView):
@@ -31,9 +27,7 @@ class Profile(ListView):
             User,
             username=self.kwargs['username']
         )
-        return Post.posts_manager.filter(
-            author=self.user
-        )
+        return Post.posts_manager.filter(author=self.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -53,7 +47,7 @@ class ProfieEditView(LoginRequiredMixin, UpdateView):
         return self.request.user
 
     def get_success_url(self):
-        return reverse_lazy(
+        return reverse(
             'blog:profile',
             kwargs={'username': self.request.user.username}
         )
@@ -109,7 +103,7 @@ class PostDetailView(PostBaseMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['form'] = CommentForm()
-        context['comments'] = (self.object.comments.all())
+        context['comments'] = self.object.comments.all()
 
         return context
 
