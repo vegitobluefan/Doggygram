@@ -1,5 +1,3 @@
-from typing import Any
-from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.urls import reverse
 from django.http import Http404
@@ -19,11 +17,11 @@ from blog.models import Category, Comment, Post, User
 from blog.forms import CommentForm, PostForm, UserForm
 
 
-post_objects = Post.objects.all()
+# post_objects = Post.objects
 
 
 def get_post_queryset(self):
-    return self.select_related(
+    return self.objects.select_related(
         'category', 'location', 'author'
     ).filter(
         pub_date__lte=timezone.now(),
@@ -45,7 +43,7 @@ class Profile(ListView):
             User,
             username=self.kwargs['username']
         )
-        queryset = post_objects.filter(
+        queryset = Post.objects.filter(
             author=self.user
         ).annotate(
             comment_count=Count('comments')
@@ -83,7 +81,7 @@ class PostListView(ListView):
     paginate_by = settings.POST_PAGINATION
 
     def get_queryset(self):
-        return get_post_queryset(post_objects)
+        return get_post_queryset(Post)
 
 
 class PostBaseMixin:
@@ -100,7 +98,8 @@ class PostDetailView(PostBaseMixin, DetailView):
     template_name = 'blog/detail.html'
 
     def get_queryset(self):
-        post = post_objects.get(id=self.kwargs['post_id'])
+        post = Post.objects.get(id=self.kwargs['post_id'])
+
         if (
             not post.category.is_published
             or post.pub_date > timezone.now()
@@ -125,7 +124,7 @@ class CategoryPostsView(ListView):
     paginate_by = settings.POST_PAGINATION
 
     def get_queryset(self):
-        return get_post_queryset(post_objects).filter(
+        return get_post_queryset(Post).filter(
             category__slug=self.kwargs['category_slug'],
         )
 
@@ -172,8 +171,12 @@ class CommentCreateView(CommentBaseMixin, CreateView):
     form_class = CommentForm
 
     def form_valid(self, form):
+        self.post = get_object_or_404(
+            Post,
+            pk=self.kwargs['post_id']
+        )
         form.instance.author = self.request.user
-        form.instance.post = post_objects.get(id=self.kwargs['post_id'])
+        form.instance.post_id = self.post.pk
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -219,7 +222,7 @@ class PostEditView(PostBaseMixin, LoginRequiredMixin, UpdateView):
     template_name = 'blog/create.html'
 
     def dispatch(self, request, *args, **kwargs):
-        post = post_objects.get(id=self.kwargs['post_id'])
+        post = Post.objects.get(id=self.kwargs['post_id'])
 
         if self.request.user != post.author:
             return redirect(
@@ -229,7 +232,7 @@ class PostEditView(PostBaseMixin, LoginRequiredMixin, UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        post = post_objects.get(id=self.kwargs['post_id'])
+        post = Post.objects.get(id=self.kwargs['post_id'])
         return reverse(
             'blog:post_detail',
             kwargs={'post_id': post.id}
