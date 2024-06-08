@@ -7,20 +7,6 @@ from django.conf import settings
 User = get_user_model()
 
 
-class PostQuerySet(models.QuerySet):
-    def get_queryset(self):
-        return self.select_related(
-            'category', 'location', 'author'
-        ).annotate(
-            comment_count=Count('comments')
-        ).order_by('-pub_date')
-
-
-class PostManager(models.Manager):
-    def get_queryset(self):
-        return PostQuerySet(self.model, using=self._db).get_queryset()
-
-
 class BaseModel(models.Model):
     """
     Abstract model.
@@ -86,9 +72,6 @@ class Location(BaseModel):
 
 class Post(BaseModel):
     """Post model."""
-
-    objects = PostQuerySet.as_manager()
-    posts_manager = PostManager()
 
     title = models.CharField(
         max_length=settings.MAX_LENGTH,
