@@ -72,6 +72,8 @@ class Location(BaseModel):
 class Post(BaseModel):
     """Post model."""
 
+    objects = models.Manager()
+
     title = models.CharField(
         max_length=settings.MAX_LENGTH,
         verbose_name='Заголовок'

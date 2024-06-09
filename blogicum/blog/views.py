@@ -98,7 +98,7 @@ class PostDetailView(PostBaseMixin, DetailView):
     template_name = 'blog/detail.html'
 
     def get_queryset(self):
-        post = post_objects.get(id=self.kwargs['post_id'])
+        post = get_post_queryset(post_objects).get(id=self.kwargs['post_id'])
         if (
             not post.category.is_published
             or post.pub_date > timezone.now()
@@ -118,6 +118,7 @@ class PostDetailView(PostBaseMixin, DetailView):
 class CategoryPostsView(ListView):
     """View for posts in certain category."""
 
+    model = Post
     template_name = 'blog/category.html'
     paginate_by = settings.POST_PAGINATION
 
@@ -156,8 +157,10 @@ class CommentEditDeleteMixin(CommentBaseMixin):
     slug_url_kwarg = 'comment_id'
 
     def get_queryset(self):
-        comment = Comment.objects.get(pk=self.kwargs['comment_id'])
-
+        comment = get_object_or_404(
+            Comment,
+            pk=self.kwargs['comment_id']
+        )
         if comment.author != self.request.user:
             raise Http404('Комментарий не найден.')
         return super().get_queryset()
