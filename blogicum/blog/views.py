@@ -83,7 +83,7 @@ class PostDetailView(PostBaseMixin, DetailView):
     template_name = 'blog/detail.html'
 
     def get_queryset(self):
-        post = Post.objects.get(id=self.kwargs['post_id'])
+        post = Post.posts_manager.get(id=self.kwargs['post_id'])
         if (
             not post.category.is_published
             or post.pub_date > timezone.now()
@@ -216,7 +216,7 @@ class PostEditView(PostBaseMixin, LoginRequiredMixin, UpdateView):
     template_name = 'blog/create.html'
 
     def dispatch(self, request, *args, **kwargs):
-        post = Post.objects.get(id=self.kwargs['post_id'])
+        post = Post.posts_manager.get(id=self.kwargs['post_id'])
 
         if self.request.user != post.author:
             return redirect(
@@ -226,7 +226,7 @@ class PostEditView(PostBaseMixin, LoginRequiredMixin, UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        post = Post.objects.get(id=self.kwargs['post_id'])
+        post = Post.posts_manager.get(id=self.kwargs['post_id'])
         return reverse(
             'blog:post_detail',
             kwargs={'post_id': post.id}
