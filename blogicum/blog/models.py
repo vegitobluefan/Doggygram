@@ -92,8 +92,7 @@ class Location(BaseModel):
 class Post(BaseModel):
     """Post model."""
 
-    # objects = PostQuerySet.as_manager()
-    posts_manager = PostManager()
+    post_manager = PostManager()
 
     title = models.CharField(
         max_length=settings.MAX_LENGTH,
