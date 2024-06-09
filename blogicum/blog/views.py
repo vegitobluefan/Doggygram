@@ -180,7 +180,7 @@ class CommentEditDeleteMixin(CommentBaseMixin):
     slug_url_kwarg = 'comment_id'
 
     def get_queryset(self):
-        comment = Comment.objects.get(pk=self.kwargs['comment_id'])
+        comment = get_object_or_404(Comment, pk=self.kwargs['comment_id'])
         if comment.author != self.request.user:
             raise Http404('Комментарий не найден.')
         return super().get_queryset()
