@@ -178,10 +178,11 @@ class CommentCreateView(CommentBaseMixin, CreateView):
     form_class = CommentForm
 
     def get_post(self):
-        return get_object_or_404(
+        post = get_object_or_404(
             Post,
             pk=self.kwargs['post_id']
         )
+        return post
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -224,15 +225,13 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         )
 
 
-class PostEditView(PostBaseMixin, LoginRequiredMixin, UpdateView):
-    """Post editing view."""
+class PostEditDeleteMixin(PostBaseMixin, LoginRequiredMixin):
+    """Mixin for post creation and deletion views."""
 
-    form_class = PostForm
     template_name = 'blog/create.html'
 
     def dispatch(self, request, *args, **kwargs):
-        post = post_objects.get(id=self.kwargs['post_id'])
-
+        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         if self.request.user != post.author:
             return redirect(
                 'blog:post_detail', post_id=post.pk
@@ -240,22 +239,22 @@ class PostEditView(PostBaseMixin, LoginRequiredMixin, UpdateView):
 
         return super().dispatch(request, *args, **kwargs)
 
+
+class PostEditView(PostEditDeleteMixin, UpdateView):
+    """Post editing view."""
+
+    form_class = PostForm
+
     def get_success_url(self):
-        post = post_objects.get(id=self.kwargs['post_id'])
+        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         return reverse(
             'blog:post_detail',
-            kwargs={'post_id': post.id}
+            kwargs={'post_id': post.pk}
         )
 
 
-class PostDeleteView(PostBaseMixin, LoginRequiredMixin, DeleteView):
+class PostDeleteView(PostEditDeleteMixin, DeleteView):
     """Post deletion view."""
-
-    template_name = 'blog/create.html'
-
-    def get_queryset(self):
-        post = get_object_or_404(Post, id=self.kwargs['post_id'])
-        return post
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
