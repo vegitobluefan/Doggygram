@@ -66,7 +66,7 @@ class PostListView(ListView):
     paginate_by = settings.POST_PAGINATION
 
     def get_queryset(self):
-        return Post.posts_manager.all()
+        return Post.post_manager.all()
 
 
 class PostBaseMixin:
@@ -83,7 +83,7 @@ class PostDetailView(PostBaseMixin, DetailView):
     template_name = 'blog/detail.html'
 
     def get_queryset(self):
-        post = get_post_queryset(post_objects).get(id=self.kwargs['post_id'])
+        post = Post.post_manager.get(id=self.kwargs['post_id'])
         if (
             not post.category.is_published
             or post.pub_date > timezone.now()
