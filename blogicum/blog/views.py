@@ -98,7 +98,7 @@ class PostDetailView(PostBaseMixin, DetailView):
     template_name = 'blog/detail.html'
 
     def get_queryset(self):
-        post = get_post_queryset(post_objects).get(id=self.kwargs['post_id'])
+        post = get_object_or_404(Post, id=self.kwargs['post_id'])
         if (
             not post.category.is_published
             or post.pub_date > timezone.now()
@@ -150,28 +150,6 @@ class CommentBaseMixin(LoginRequiredMixin):
     template_name = 'blog/comment.html'
 
 
-class CommentEditDeleteMixin(CommentBaseMixin):
-    """Mixin for editing or deleting comment views."""
-
-    slug_field = 'id'
-    slug_url_kwarg = 'comment_id'
-
-    def get_queryset(self):
-        comment = get_object_or_404(
-            Comment,
-            pk=self.kwargs['comment_id']
-        )
-        if comment.author != self.request.user:
-            raise Http404('Комментарий не найден.')
-        return super().get_queryset()
-
-    def get_success_url(self):
-        return reverse(
-            'blog:post_detail',
-            kwargs={'post_id': self.kwargs['post_id']}
-        )
-
-
 class CommentCreateView(CommentBaseMixin, CreateView):
     """View for comment creation."""
 
@@ -188,6 +166,25 @@ class CommentCreateView(CommentBaseMixin, CreateView):
         form.instance.author = self.request.user
         form.instance.post_id = self.get_post().pk
         return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse(
+            'blog:post_detail',
+            kwargs={'post_id': self.kwargs['post_id']}
+        )
+
+
+class CommentEditDeleteMixin(CommentBaseMixin):
+    """Mixin for editing or deleting comment views."""
+
+    slug_field = 'id'
+    slug_url_kwarg = 'comment_id'
+
+    def get_queryset(self):
+        comment = Comment.objects.get(pk=self.kwargs['comment_id'])
+        if comment.author != self.request.user:
+            raise Http404('Комментарий не найден.')
+        return super().get_queryset()
 
     def get_success_url(self):
         return reverse(
@@ -246,7 +243,7 @@ class PostEditView(PostEditDeleteMixin, UpdateView):
     form_class = PostForm
 
     def get_success_url(self):
-        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        post = post_objects.get(pk=self.kwargs['post_id'])
         return reverse(
             'blog:post_detail',
             kwargs={'post_id': post.pk}
