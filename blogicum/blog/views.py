@@ -164,7 +164,7 @@ class CommentCreateView(CommentBaseMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        form.instance.post_id = self.get_post().pk
+        form.instance.post_id = self.post.pk
         return super().form_valid(form)
 
     def get_success_url(self):
