@@ -17,21 +17,6 @@ from blog.models import Category, Comment, Post, User
 from blog.forms import CommentForm, PostForm, UserForm
 
 
-post_objects = Post.objects.all()
-
-
-def get_post_queryset(self):
-    return self.select_related(
-        'category', 'location', 'author'
-    ).filter(
-        pub_date__lte=timezone.now(),
-        category__is_published=True,
-        is_published=True,
-    ).annotate(
-        comment_count=Count('comments')
-    ).order_by('-pub_date')
-
-
 class Profile(ListView):
     """User's profile view."""
 
@@ -81,7 +66,7 @@ class PostListView(ListView):
     paginate_by = settings.POST_PAGINATION
 
     def get_queryset(self):
-        return get_post_queryset(post_objects)
+        return Post.posts_manager.all()
 
 
 class PostBaseMixin:
@@ -98,7 +83,7 @@ class PostDetailView(PostBaseMixin, DetailView):
     template_name = 'blog/detail.html'
 
     def get_queryset(self):
-        post = get_post_queryset(post_objects).get(id=self.kwargs['post_id'])
+        post = Post.objects.get(id=self.kwargs['post_id'])
         if (
             not post.category.is_published
             or post.pub_date > timezone.now()
@@ -231,7 +216,7 @@ class PostEditView(PostBaseMixin, LoginRequiredMixin, UpdateView):
     template_name = 'blog/create.html'
 
     def dispatch(self, request, *args, **kwargs):
-        post = post_objects.get(id=self.kwargs['post_id'])
+        post = Post.objects.get(id=self.kwargs['post_id'])
 
         if self.request.user != post.author:
             return redirect(
@@ -241,7 +226,7 @@ class PostEditView(PostBaseMixin, LoginRequiredMixin, UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        post = post_objects.get(id=self.kwargs['post_id'])
+        post = Post.objects.get(id=self.kwargs['post_id'])
         return reverse(
             'blog:post_detail',
             kwargs={'post_id': post.id}
