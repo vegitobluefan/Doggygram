@@ -1,9 +1,29 @@
 from django.db import models
+from django.db.models import Count
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.conf import settings
 
 
 User = get_user_model()
+
+
+class PostQuerySet(models.QuerySet):
+    def get_post_queryset(self):
+        return self.select_related(
+            'category', 'location', 'author'
+        ).filter(
+            pub_date__lte=timezone.now(),
+            category__is_published=True,
+            is_published=True,
+        ).annotate(
+            comment_count=Count('comments')
+        ).order_by('-pub_date')
+
+
+class PostManager(models.Manager):
+    def get_queryset(self):
+        return PostQuerySet(self.model, using=self._db).get_post_queryset()
 
 
 class BaseModel(models.Model):
@@ -72,7 +92,8 @@ class Location(BaseModel):
 class Post(BaseModel):
     """Post model."""
 
-    objects = models.Manager()
+    # objects = PostQuerySet.as_manager()
+    posts_manager = PostManager()
 
     title = models.CharField(
         max_length=settings.MAX_LENGTH,
