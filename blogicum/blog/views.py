@@ -95,8 +95,8 @@ class PostDetailView(PostBaseMixin, DetailView):
 
     template_name = 'blog/detail.html'
 
-    def get_queryset(self):
-        post = get_object_or_404(Post, id=self.kwargs['post_id'])
+    def get_object(self):
+        post = super().get_object()
         if (
             not post.category.is_published
             or post.pub_date > timezone.now()
@@ -104,7 +104,7 @@ class PostDetailView(PostBaseMixin, DetailView):
         ) and post.author != self.request.user:
             raise Http404('Пост не найден.')
 
-        return super().get_queryset()
+        return super().get_object()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -175,11 +175,11 @@ class CommentEditDeleteMixin(CommentBaseMixin):
     slug_field = 'id'
     slug_url_kwarg = 'comment_id'
 
-    def get_queryset(self):
-        comment = get_object_or_404(Comment, pk=self.kwargs['comment_id'])
+    def get_object(self):
+        comment = super().get_object()
         if comment.author != self.request.user:
             raise Http404('Комментарий не найден.')
-        return super().get_queryset()
+        return super().get_object()
 
     def get_success_url(self):
         return reverse(
