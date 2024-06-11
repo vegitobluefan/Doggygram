@@ -17,10 +17,7 @@ from blog.models import Category, Comment, Post, User
 from blog.forms import CommentForm, PostForm, UserForm
 
 
-post_objects = Post.objects.all()
-
-
-def get_post_queryset(self):
+def filtering(self):
     return self.select_related(
         'category', 'location', 'author'
     ).filter(
@@ -45,10 +42,13 @@ class Profile(ListView):
         )
 
     def get_queryset(self):
-        queryset = self.get_user().author_profile.annotate(
-            comment_count=Count('comments')
-        ).order_by('-pub_date')
-        return queryset
+        if self.get_user() == self.request.user:
+            queryset = self.get_user().author_posts.annotate(
+                comment_count=Count('comments')
+            ).order_by('-pub_date')
+            return queryset
+        else:
+            return filtering(Post.objects).filter(author=self.get_user())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -79,9 +79,7 @@ class PostListView(ListView):
     template_name = 'blog/index.html'
     model = Post
     paginate_by = settings.POST_PAGINATION
-
-    def get_queryset(self):
-        return get_post_queryset(post_objects)
+    queryset = filtering(Post.objects)
 
 
 class PostBaseMixin:
@@ -155,15 +153,13 @@ class CommentCreateView(CommentBaseMixin, CreateView):
 
     form_class = CommentForm
 
-    def get_post(self):
-        return get_object_or_404(
+    def form_valid(self, form):
+        post = get_object_or_404(
             Post,
             pk=self.kwargs['post_id']
         )
-
-    def form_valid(self, form):
         form.instance.author = self.request.user
-        form.instance.post_id = self.get_post().pk
+        form.instance.post = post
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -242,7 +238,7 @@ class PostEditView(PostEditDeleteMixin, UpdateView):
     form_class = PostForm
 
     def get_success_url(self):
-        post = post_objects.get(pk=self.kwargs['post_id'])
+        post = Post.objects.get(pk=self.kwargs['post_id'])
         return reverse(
             'blog:post_detail',
             kwargs={'post_id': post.pk}
