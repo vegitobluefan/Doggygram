@@ -34,25 +34,24 @@ class Profile(ListView):
 
     template_name = 'blog/profile.html'
     paginate_by = settings.POST_PAGINATION
+    author = None
 
-    def get_user(self):
-        return get_object_or_404(
+    def get_queryset(self):
+        self.author = get_object_or_404(
             User,
             username=self.kwargs['username']
         )
-
-    def get_queryset(self):
-        if self.get_user() == self.request.user:
-            queryset = self.get_user().author_posts.annotate(
+        if self.author == self.request.user:
+            queryset = self.author.author_posts.annotate(
                 comment_count=Count('comments')
             ).order_by('-pub_date')
             return queryset
         else:
-            return filtering(Post.objects).filter(author=self.get_user())
+            return filtering(Post.objects).filter(author=self.author)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['profile'] = self.get_user()
+        context['profile'] = self.author
         return context
 
 
@@ -119,25 +118,21 @@ class CategoryPostsView(ListView):
     model = Post
     template_name = 'blog/category.html'
     paginate_by = settings.POST_PAGINATION
+    category = None
 
-    def get_category(self):
-        return get_object_or_404(
+    def get_queryset(self):
+        self.category = get_object_or_404(
             Category,
             slug=self.kwargs['category_slug'],
             is_published=True
         )
-
-    def get_queryset(self):
-        return self.get_category().posts.filter(
-            pub_date__lte=timezone.now(),
-            is_published=True,
-        ).annotate(
+        return filtering(self.category.posts).annotate(
             comment_count=Count('comments')
         ).order_by('-pub_date')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['category'] = self.get_category()
+        context['category'] = self.category
         return context
 
 
