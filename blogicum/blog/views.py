@@ -17,8 +17,8 @@ from blog.models import Category, Comment, Post, User
 from blog.forms import CommentForm, PostForm, UserForm
 
 
-def filtering(self):
-    return self.select_related(
+def filtering(posts):
+    return posts.select_related(
         'category', 'location', 'author'
     ).filter(
         pub_date__lte=timezone.now(),
@@ -42,12 +42,12 @@ class Profile(ListView):
             username=self.kwargs['username']
         )
         if self.author == self.request.user:
-            queryset = self.author.author_posts.annotate(
+            queryset = self.author.posts.annotate(
                 comment_count=Count('comments')
             ).order_by('-pub_date')
             return queryset
-        else:
-            return filtering(Post.objects).filter(author=self.author)
+
+        return filtering(self.author.posts)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -103,7 +103,7 @@ class PostDetailView(PostBaseMixin, DetailView):
         ) and post.author != self.request.user:
             raise Http404('Пост не найден.')
 
-        return super().get_object()
+        return post
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -126,9 +126,7 @@ class CategoryPostsView(ListView):
             slug=self.kwargs['category_slug'],
             is_published=True
         )
-        return filtering(self.category.posts).annotate(
-            comment_count=Count('comments')
-        ).order_by('-pub_date')
+        return filtering(self.category.posts)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -174,7 +172,7 @@ class CommentEditDeleteMixin(CommentBaseMixin):
         comment = super().get_object()
         if comment.author != self.request.user:
             raise Http404('Комментарий не найден.')
-        return super().get_object()
+        return comment
 
     def get_success_url(self):
         return reverse(
