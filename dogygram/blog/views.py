@@ -1,23 +1,18 @@
-from django.utils import timezone
-from django.urls import reverse
-from django.http import Http404
+from blog.forms import CommentForm, PostForm, UserForm
+from blog.models import Category, Comment, Post, User
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
-from django.conf import settings
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import (
-    CreateView,
-    DeleteView,
-    DetailView,
-    ListView,
-    UpdateView
-)
-
-from blog.models import Category, Comment, Post, User
-from blog.forms import CommentForm, PostForm, UserForm
+from django.urls import reverse
+from django.utils import timezone
+from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
+                                  UpdateView)
 
 
 def filtering(posts):
+    """Функция для устранения повторяющегося кода."""
     return posts.select_related(
         'category', 'location', 'author'
     ).filter(
@@ -37,6 +32,7 @@ class Profile(ListView):
     author = None
 
     def get_queryset(self):
+        """Получаем список постов автора."""
         self.author = get_object_or_404(
             User,
             username=self.kwargs['username']
@@ -50,6 +46,7 @@ class Profile(ListView):
         return filtering(self.author.posts)
 
     def get_context_data(self, **kwargs):
+        """Получаем контекст."""
         context = super().get_context_data(**kwargs)
         context['profile'] = self.author
         return context
@@ -63,9 +60,11 @@ class ProfieEditView(LoginRequiredMixin, UpdateView):
     template_name = 'blog/user.html'
 
     def get_object(self, queryset=None):
+        """Получаем пользователя."""
         return self.request.user
 
     def get_success_url(self):
+        """Адрес успешного действия."""
         return reverse(
             'blog:profile',
             kwargs={'username': self.request.user.username}
@@ -95,6 +94,7 @@ class PostDetailView(PostBaseMixin, DetailView):
     template_name = 'blog/detail.html'
 
     def get_object(self):
+        """Получаем пост."""
         post = super().get_object()
         if (
             not post.category.is_published
@@ -106,6 +106,7 @@ class PostDetailView(PostBaseMixin, DetailView):
         return post
 
     def get_context_data(self, **kwargs):
+        """Получаем контекст."""
         context = super().get_context_data(**kwargs)
         context['form'] = CommentForm()
         context['comments'] = self.object.comments.all()
@@ -121,6 +122,7 @@ class CategoryPostsView(ListView):
     category = None
 
     def get_queryset(self):
+        """Получаем посты определённой категории."""
         self.category = get_object_or_404(
             Category,
             slug=self.kwargs['category_slug'],
@@ -129,6 +131,7 @@ class CategoryPostsView(ListView):
         return filtering(self.category.posts)
 
     def get_context_data(self, **kwargs):
+        """Получаем контекст."""
         context = super().get_context_data(**kwargs)
         context['category'] = self.category
         return context
@@ -147,6 +150,7 @@ class CommentCreateView(CommentBaseMixin, CreateView):
     form_class = CommentForm
 
     def form_valid(self, form):
+        """Проверяем валидность формы."""
         post = get_object_or_404(
             Post,
             pk=self.kwargs['post_id']
@@ -156,6 +160,7 @@ class CommentCreateView(CommentBaseMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
+        """Получаем адрес успешного действия."""
         return reverse(
             'blog:post_detail',
             kwargs={'post_id': self.kwargs['post_id']}
@@ -169,12 +174,14 @@ class CommentEditDeleteMixin(CommentBaseMixin):
     slug_url_kwarg = 'comment_id'
 
     def get_object(self):
+        """Получаем комментарий."""
         comment = super().get_object()
         if comment.author != self.request.user:
             raise Http404('Комментарий не найден.')
         return comment
 
     def get_success_url(self):
+        """Получаем адрес успешного действия."""
         return reverse(
             'blog:post_detail',
             kwargs={'post_id': self.kwargs['post_id']}
@@ -200,10 +207,12 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     template_name = 'blog/create.html'
 
     def form_valid(self, form):
+        """Проверяем валидность формы."""
         form.instance.author = self.request.user
         return super().form_valid(form)
 
     def get_success_url(self):
+        """Получаем адрес успешного действия."""
         return reverse(
             'blog:profile',
             kwargs={'username': self.request.user.username}
@@ -216,6 +225,7 @@ class PostEditDeleteMixin(PostBaseMixin, LoginRequiredMixin):
     template_name = 'blog/create.html'
 
     def dispatch(self, request, *args, **kwargs):
+        """Диспатчеризация."""
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         if self.request.user != post.author:
             return redirect(
@@ -231,6 +241,7 @@ class PostEditView(PostEditDeleteMixin, UpdateView):
     form_class = PostForm
 
     def get_success_url(self):
+        """Получаем адрес успешного действия."""
         post = Post.objects.get(pk=self.kwargs['post_id'])
         return reverse(
             'blog:post_detail',
@@ -242,9 +253,11 @@ class PostDeleteView(PostEditDeleteMixin, DeleteView):
     """Post deletion view."""
 
     def get_context_data(self, **kwargs):
+        """Получаем контекст."""
         context = super().get_context_data(**kwargs)
         context['form'] = PostForm(instance=self.object)
         return context
 
     def get_success_url(self):
+        """Получаем адрес успешного действия."""
         return reverse('blog:index')
