@@ -7,10 +7,7 @@ User = get_user_model()
 
 
 class BaseModel(models.Model):
-    """
-    Abstract model.
-    Adds publication and creation flags to the model.
-    """
+    """Abstract model. Adds publication and creation flags to the model."""
 
     is_published = models.BooleanField(
         default=True,
@@ -122,7 +119,7 @@ class Post(BaseModel):
 
 
 class Comment(models.Model):
-    """Post's Comment model"""
+    """Post's Comment model."""
 
     post = models.ForeignKey(
         Post,

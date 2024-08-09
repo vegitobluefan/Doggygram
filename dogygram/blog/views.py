@@ -25,7 +25,7 @@ def filtering(posts):
 
 
 class Profile(ListView):
-    """User's profile view."""
+    """View класс для отображения списка постов определённого автора."""
 
     template_name = 'blog/profile.html'
     paginate_by = settings.POST_PAGINATION
@@ -53,7 +53,7 @@ class Profile(ListView):
 
 
 class ProfieEditView(LoginRequiredMixin, UpdateView):
-    """User's profile editing view."""
+    """View класс для редактирования профиля пользователя."""
 
     model = User
     form_class = UserForm
@@ -72,7 +72,7 @@ class ProfieEditView(LoginRequiredMixin, UpdateView):
 
 
 class PostListView(ListView):
-    """Post list view."""
+    """View класс для отображения списка постов на главной странице."""
 
     template_name = 'blog/index.html'
     model = Post
@@ -89,7 +89,7 @@ class PostBaseMixin:
 
 
 class PostDetailView(PostBaseMixin, DetailView):
-    """Certain post view."""
+    """View класс для обзора отдельного поста."""
 
     template_name = 'blog/detail.html'
 
@@ -114,7 +114,7 @@ class PostDetailView(PostBaseMixin, DetailView):
 
 
 class CategoryPostsView(ListView):
-    """View for posts in certain category."""
+    """View класс для постов в определённой категории."""
 
     model = Post
     template_name = 'blog/category.html'
@@ -138,14 +138,14 @@ class CategoryPostsView(ListView):
 
 
 class CommentBaseMixin(LoginRequiredMixin):
-    """Mixin for comments."""
+    """Миксин для views комментария."""
 
     model = Comment
     template_name = 'blog/comment.html'
 
 
 class CommentCreateView(CommentBaseMixin, CreateView):
-    """View for comment creation."""
+    """View класс для создания комментариев."""
 
     form_class = CommentForm
 
@@ -168,7 +168,7 @@ class CommentCreateView(CommentBaseMixin, CreateView):
 
 
 class CommentEditDeleteMixin(CommentBaseMixin):
-    """Mixin for editing or deleting comment views."""
+    """Миксин для views удаления и редактирования комментария."""
 
     slug_field = 'id'
     slug_url_kwarg = 'comment_id'
@@ -189,19 +189,19 @@ class CommentEditDeleteMixin(CommentBaseMixin):
 
 
 class CommentEditView(CommentEditDeleteMixin, UpdateView):
-    """Comment editing view."""
+    """View класс для редактировангия комментария."""
 
     form_class = CommentForm
 
 
 class CommentDeleteView(CommentEditDeleteMixin, DeleteView):
-    """View for comment deletion."""
+    """View класс для удаления комментария."""
 
     pass
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
-    """Post creation view."""
+    """View класс для создания постов."""
 
     form_class = PostForm
     template_name = 'blog/create.html'
@@ -220,7 +220,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
 
 class PostEditDeleteMixin(PostBaseMixin, LoginRequiredMixin):
-    """Mixin for post creation and deletion views."""
+    """Миксин для views создания и удаления постов."""
 
     template_name = 'blog/create.html'
 
@@ -236,7 +236,7 @@ class PostEditDeleteMixin(PostBaseMixin, LoginRequiredMixin):
 
 
 class PostEditView(PostEditDeleteMixin, UpdateView):
-    """Post editing view."""
+    """View класс для редактирования постов."""
 
     form_class = PostForm
 
@@ -250,7 +250,7 @@ class PostEditView(PostEditDeleteMixin, UpdateView):
 
 
 class PostDeleteView(PostEditDeleteMixin, DeleteView):
-    """Post deletion view."""
+    """View класс для удаления постов."""
 
     def get_context_data(self, **kwargs):
         """Получаем контекст."""
