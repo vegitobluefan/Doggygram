@@ -41,12 +41,7 @@
 ``` posts/profile/edit ```  
 Создание новой публикации:  
 ``` posts/create/ ```
-Получение отдельной публикации:
-``` posts/<int:post_id>/ ```
-Редактирование поста по id:  
-``` posts/<int:post_id>/edit/ ```
-Удаление поста по id:  
-``` posts/<int:post_id>/delete/ ```
+
 
 
 #### Технологии
