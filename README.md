@@ -44,7 +44,9 @@
 Получение отдельной публикации:
 ``` posts/<int:post_id>/ ```
 Редактирование и удаление поста по id:  
-``` posts/<int:post_id>/edit/, posts/<int:post_id>/delete/ ```   
+``` posts/<int:post_id>/edit/ ```
+Удаление поста по id:  
+``` posts/<int:post_id>/delete/ ```  
 
 
 #### Технологии
