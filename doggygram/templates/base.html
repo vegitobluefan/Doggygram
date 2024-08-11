@@ -15,11 +15,21 @@
     {% bootstrap_css %}
     <title>Переключатель темы</title>
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+      .butn {
+        padding: 0.5em 1.5em;
+        background-color: #9462e4;
+        font-size: 0.99em;
+        color: #fff;
+        border-width: 0;
+        border-radius: 0.4em;
+       }
+     </style>
   </head>
   <body>
     {% include "includes/header.html" %}
     <main>
-      <button id="themeToggle">Переключить тему</button>
+      <button id="themeToggle" class="butn">Переключить цветовую тему</button>
       <div class="container py-5">
         {% block content %}{% endblock %}
       </div>
