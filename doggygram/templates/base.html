@@ -13,14 +13,18 @@
       {% block title %}{% endblock %}
     </title>
     {% bootstrap_css %}
+    <title>Переключатель темы</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
   </head>
   <body>
     {% include "includes/header.html" %}
     <main>
+      <button id="themeToggle">Переключить тему</button>
       <div class="container py-5">
         {% block content %}{% endblock %}
       </div>
     </main>
     {% include "includes/footer.html" %}
+    <script src="{% static 'js/script.js' %}"></script>
   </body>
 </html>
