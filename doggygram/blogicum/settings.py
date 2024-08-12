@@ -9,6 +9,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     '127.0.0.1',
+    'www.Darinov.pythonanywhere.com',
+    'Darinov.pythonanywhere.com',
 ]
 
 
@@ -40,7 +42,7 @@ INTERNAL_IPS = [
     '127.0.0.1',
 ]
 
-ROOT_URLCONF = 'dogs.urls'
+ROOT_URLCONF = 'blogicum.urls'
 
 TEMPLATES_DIR = BASE_DIR / 'templates'
 TEMPLATES = [
@@ -59,7 +61,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'dogs.wsgi.application'
+WSGI_APPLICATION = 'blogicum.wsgi.application'
 
 
 DATABASES = {
