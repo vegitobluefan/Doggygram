@@ -40,7 +40,7 @@ INTERNAL_IPS = [
     '127.0.0.1',
 ]
 
-ROOT_URLCONF = 'blogicum.urls'
+ROOT_URLCONF = 'dogs.urls'
 
 TEMPLATES_DIR = BASE_DIR / 'templates'
 TEMPLATES = [
@@ -59,7 +59,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'blogicum.wsgi.application'
+WSGI_APPLICATION = 'dogs.wsgi.application'
 
 
 DATABASES = {
