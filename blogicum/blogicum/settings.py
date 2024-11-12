@@ -7,11 +7,7 @@ SECRET_KEY = 'django-insecure-4p1rl$3d#a$vbhhyk%aj9sez^*uapcdv!kvph($uk$2ojwpmd9
 
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    '127.0.0.1',
-    'www.Darinov.pythonanywhere.com',
-    'Darinov.pythonanywhere.com',
-]
+ALLOWED_HOSTS = []
 
 
 INSTALLED_APPS = [
@@ -97,6 +93,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
 
 MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
 
 LOGIN_REDIRECT_URL = 'blog:index'
 
