@@ -1,5 +1,3 @@
-from blog.forms import CommentForm, PostForm, UserForm
-from blog.models import Category, Comment, Post, User
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
@@ -9,6 +7,9 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   UpdateView)
+
+from .forms import CommentForm, PostForm, UserForm
+from .models import Category, Comment, Post, User
 
 
 def filtering(posts):
@@ -80,15 +81,15 @@ class PostListView(ListView):
     queryset = filtering(Post.objects)
 
 
-class PostBaseMixin:
-    """Base mixin for post views."""
+class PostsMixin:
+    """Mixin для views постов."""
 
     model = Post
     slug_field = 'id'
     slug_url_kwarg = 'post_id'
 
 
-class PostDetailView(PostBaseMixin, DetailView):
+class PostDetailView(PostsMixin, DetailView):
     """View класс для обзора отдельного поста."""
 
     template_name = 'blog/detail.html'
@@ -137,14 +138,14 @@ class CategoryPostsView(ListView):
         return context
 
 
-class CommentBaseMixin(LoginRequiredMixin):
+class CommentsMixin(LoginRequiredMixin):
     """Миксин для views комментария."""
 
     model = Comment
     template_name = 'blog/comment.html'
 
 
-class CommentCreateView(CommentBaseMixin, CreateView):
+class CommentCreateView(CommentsMixin, CreateView):
     """View класс для создания комментариев."""
 
     form_class = CommentForm
@@ -167,7 +168,7 @@ class CommentCreateView(CommentBaseMixin, CreateView):
         )
 
 
-class CommentEditDeleteMixin(CommentBaseMixin):
+class CommentEditDeleteMixin(CommentsMixin):
     """Миксин для views удаления и редактирования комментария."""
 
     slug_field = 'id'
@@ -176,9 +177,9 @@ class CommentEditDeleteMixin(CommentBaseMixin):
     def get_object(self):
         """Получаем комментарий."""
         comment = super().get_object()
-        if comment.author != self.request.user:
-            raise Http404('Комментарий не найден.')
-        return comment
+        if comment.author == self.request.user:
+            return comment
+        raise Http404('Комментарий не найден.')
 
     def get_success_url(self):
         """Получаем адрес успешного действия."""
@@ -219,7 +220,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         )
 
 
-class PostEditDeleteMixin(PostBaseMixin, LoginRequiredMixin):
+class PostEditDeleteMixin(PostsMixin, LoginRequiredMixin):
     """Миксин для views создания и удаления постов."""
 
     template_name = 'blog/create.html'

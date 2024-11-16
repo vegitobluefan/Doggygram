@@ -4,13 +4,13 @@ from django.views.generic import TemplateView
 
 
 class About(TemplateView):
-    """View for about page in header."""
+    """View для страницы "О проекте"."""
 
     template_name = 'pages/about.html'
 
 
 class Rules(TemplateView):
-    """View for rules page in header."""
+    """View для страницы правил."""
 
     template_name = 'pages/rules.html'
 
